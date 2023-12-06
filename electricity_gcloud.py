@@ -11,8 +11,11 @@ class Electricity(object):
         consumi = self.db.collection('consumi').get()
 
         for x in consumi:
-            print("Cleaning: {x.id}")
-            x.delete()
+            print(f"Cleaning: {x.id}")
+            try:
+                self.db.collection('consumi').document(x.id).delete()
+            except Exception as e:
+                print(f"Error deleting document {x.id}: {e}")
 
     def add_consumi(self, date, value):
         consumi_ref = self.db.collection('consumi')
@@ -32,16 +35,23 @@ class Electricity(object):
             consumi.append(False)
             return consumi
         else:
-            # INTERPOLATE!!! TODO
-            # consumi_collection = self.db.collection('consumi').get()
             valore = 0
+            lettura = []
+            data_list = []
             test = len(self.db.collection('consumi').get())
             if test >= 2:
                 query = self.db.collection('consumi').order_by("date", direction=firestore.Query.DESCENDING).limit(2)
                 docs = query.get()
                 for x in docs:
                     valore = valore + x.get("value")
-                valore = valore / 2
+                    lettura.append(x.get("value"))
+                    data_list.append(datetime.strptime(x.get("date"), '%d-%m-%Y'))
+                diff10 = (data_list[1] - data_list[0])
+                diffnow_1 = datetime.strptime(date, '%d-%m-%Y') - data_list[1]
+                valore = lettura[1] + ((lettura[1] - lettura[0]) / (diff10.total_seconds())) * (
+                            diffnow_1.total_seconds())
+                # valore = valore / 2
+
             else:
                 query = self.db.collection('consumi').order_by("date", direction=firestore.Query.DESCENDING).limit(1)
                 docs = query.get()
