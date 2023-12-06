@@ -1,0 +1,10 @@
+POST https://travel2-405610.oa.r.appspot.com/api/v1/travel/megan/2023-11-20
+Content-Type: application/json
+
+{
+  "from": "blq",
+  "to": "bsi"
+}
+
+
+
