@@ -5,12 +5,13 @@ from datetime import datetime
 
 class Electricity(object):
     def __init__(self):
-        self.db = firestore.Client()
+        self.db = firestore.Client()  # connessione con db firestore
 
     def clean(self):
-        consumi = self.db.collection('consumi').get()
+        # raccolta -> documenti -> campi
+        consumi = self.db.collection('consumi').get()  # fetching della raccolta consumi
 
-        for x in consumi:
+        for x in consumi:  # scorrimento di tutti i documenti all'interno della raccolta
             print(f"Cleaning: {x.id}")
             try:
                 self.db.collection('consumi').document(x.id).delete()
@@ -18,17 +19,19 @@ class Electricity(object):
                 print(f"Error deleting document {x.id}: {e}")
 
     def add_consumi(self, date, value):
-        consumi_ref = self.db.collection('consumi')
+        # consumi_ref = self.db.collection('consumi')
         h = {
             'date': date,
             'value': value
         }
-        consumi_ref.document(date).set(h)
+        # consumi_ref.document(date).set(h)
+        self.db.collection('consumi').document(date).set(h)  # aggiungo documenti con campi
 
     def get_lettura_consumi(self, date):
         consumi = []
-        consumi_ref = self.db.collection('consumi')
-        consumi_doc = consumi_ref.document(date).get()
+        # consumi_ref = self.db.collection('consumi')
+        # consumi_doc = consumi_ref.document(date).get()
+        consumi_doc = self.db.collection('consumi').document(date).get()  # fetching del documento
 
         if consumi_doc.exists:
             consumi.append(consumi_doc.get("value"))
@@ -38,10 +41,12 @@ class Electricity(object):
             valore = 0
             lettura = []
             data_list = []
-            test = len(self.db.collection('consumi').get())
+            test = len(self.db.collection('consumi').get())  # controllo il numero di documenti nella raccolta
             if test >= 2:
-                query = self.db.collection('consumi').order_by("date", direction=firestore.Query.DESCENDING).limit(2)
-                docs = query.get()
+                # query = self.db.collection('consumi').order_by("date", direction=firestore.Query.DESCENDING).limit(2)
+                # docs = query.get()
+                docs = self.db.collection('consumi').order_by("date",
+                                                              direction=firestore.Query.DESCENDING).limit(2).get()
                 for x in docs:
                     valore = valore + x.get("value")
                     lettura.append(x.get("value"))
@@ -53,8 +58,10 @@ class Electricity(object):
                 # valore = valore / 2
 
             else:
-                query = self.db.collection('consumi').order_by("date", direction=firestore.Query.DESCENDING).limit(1)
-                docs = query.get()
+                # query = self.db.collection('consumi').order_by("date", direction=firestore.Query.DESCENDING).limit(1)
+                # docs = query.get()
+                docs = self.db.collection('consumi').order_by("date",
+                                                              direction=firestore.Query.DESCENDING).limit(1).get()
                 for x in docs:
                     valore = valore + x.get("value")
                 # valore = valore / 2
